@@ -1,42 +1,44 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500);
-camera.position.set(0, 0, 100);
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(-10, 70, 100);
 camera.lookAt(0, 0, 0);
 
 const scene = new THREE.Scene();
 
-// Create a blue LineBasicMaterial
-const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
+const ambientLight = new THREE.AmbientLight(0x404040, 6);
+scene.add(ambientLight);
 
-// Create a geometry with some points
-const points = [];
-points.push(new THREE.Vector3(-10, 0, 0));
-points.push(new THREE.Vector3(0, 10, 0));
-points.push(new THREE.Vector3(10, 0, 0));
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+scene.add(directionalLight);
 
-const geometry = new THREE.BufferGeometry().setFromPoints(points);
+// Instantiate a glTF loader
+// Note that GLTF files are basically just JSON files which seems to house info to help the loader find the binaries, textures, etc
+const loader = new GLTFLoader();
 
-// Now that we have points for 2 lines, and we also have a material, we can put them together to form a line
-const line = new THREE.Line(geometry, material);
+// Root path for the loader to start all of its resource searches from
+loader.load(
+    'models/sci-fi/scene.gltf',
+    function (gltf) {
+        console.log('GLTF file loaded!');
+        console.log(gltf);
+        scene.add(gltf.scene);
+    },
+    function (xhr) {
+        console.log('xhr load progress callback: %d', (xhr.loaded / xhr.total) * 100);
+    },
+    function (error) {
+        console.log('Error loading GLB file:', error);
+    }
+);
 
-// Finally, add the line to the scene and call render
-scene.add(line);
-renderer.render(scene, camera);
+function animate() {
+    renderer.render(scene, camera);
+}
 
-// const geometry = new THREE.BoxGeometry(1, 1, 1);
-// const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-// const cube = new THREE.Mesh(geometry, material);
-// scene.add(cube);
-
-// function animate() {
-//     cube.rotation.x += 0.01;
-//     cube.rotation.y += 0.01;
-//     renderer.render(scene, camera);
-// }
-
-// renderer.setAnimationLoop(animate);
+renderer.setAnimationLoop(animate);
